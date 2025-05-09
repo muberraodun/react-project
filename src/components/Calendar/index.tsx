@@ -131,25 +131,29 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const generateStaffBasedCalendar = () => {
     const works: EventInput[] = [];
 
-    for (let i = 0; i < schedule?.assignments?.length; i++) {
+    const staffAssignments = schedule?.assignments?.filter(
+      (assignment) => assignment.staffId === selectedStaffId
+    );
+
+    for (let i = 0; i < (staffAssignments?.length || 0); i++) {
       const className = schedule?.shifts?.findIndex(
-        (shift) => shift.id === schedule?.assignments?.[i]?.shiftId
+        (shift) => shift.id === staffAssignments?.[i]?.shiftId
       );
 
       const assignmentDate = dayjs
-        .utc(schedule?.assignments?.[i]?.shiftStart)
+        .utc(staffAssignments?.[i]?.shiftStart)
         .format("YYYY-MM-DD");
       const isValidDate = validDates().includes(assignmentDate);
 
       const work = {
-        id: schedule?.assignments?.[i]?.id,
-        title: getShiftById(schedule?.assignments?.[i]?.shiftId)?.name,
+        id: staffAssignments?.[i]?.id,
+        title: getShiftById(staffAssignments?.[i]?.shiftId)?.name,
         duration: "01:00",
         date: assignmentDate,
-        staffId: schedule?.assignments?.[i]?.staffId,
-        shiftId: schedule?.assignments?.[i]?.shiftId,
+        staffId: staffAssignments?.[i]?.staffId,
+        shiftId: staffAssignments?.[i]?.shiftId,
         className: `event ${classes[className]} ${
-          getAssigmentById(schedule?.assignments?.[i]?.id)?.isUpdated
+          getAssigmentById(staffAssignments?.[i]?.id)?.isUpdated
             ? "highlight"
             : ""
         } ${!isValidDate ? "invalid-date" : ""}`,
