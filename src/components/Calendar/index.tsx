@@ -77,9 +77,9 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const [events, setEvents] = useState<EventInput[]>([]);
   const [highlightedDates, setHighlightedDates] = useState<string[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
-  const [initialDate, setInitialDate] = useState<Date>(
-    dayjs(schedule?.scheduleStartDate).toDate()
-  );
+  const [initialDate, setInitialDate] = useState<Date | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const getPlugins = () => {
     const plugins = [dayGridPlugin];
@@ -176,8 +176,28 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   };
 
   useEffect(() => {
-    setSelectedStaffId(schedule?.staffs?.[0]?.id);
-    generateStaffBasedCalendar();
+    if (schedule && Object.keys(schedule).length > 0) {
+      setSelectedStaffId(schedule?.staffs?.[0]?.id);
+      generateStaffBasedCalendar();
+
+      if (schedule?.assignments && schedule.assignments.length > 0) {
+        const sortedAssignments = [...schedule.assignments].sort(
+          (a, b) =>
+            dayjs(a.shiftStart).valueOf() - dayjs(b.shiftStart).valueOf()
+        );
+
+        if (sortedAssignments.length > 0) {
+          const firstEventDate = dayjs(sortedAssignments[0].shiftStart)
+            .startOf("month")
+            .toDate();
+          setInitialDate(firstEventDate);
+
+          if (calendarRef.current) {
+            calendarRef.current.getApi().gotoDate(firstEventDate);
+          }
+        }
+      }
+    }
   }, [schedule]);
 
   useEffect(() => {
@@ -190,6 +210,35 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
         <p>{eventInfo.event.title}</p>
       </div>
     );
+  };
+
+  const handleEventClick = (clickInfo: any) => {
+    const eventId = clickInfo.event.id;
+    const eventData = schedule?.assignments?.find(
+      (assignment) => assignment.id === eventId
+    );
+
+    if (eventData) {
+      const staffData = getStaffById(eventData.staffId);
+      const shiftData = getShiftById(eventData.shiftId);
+
+      setSelectedEvent({
+        id: eventData.id,
+        staffName: staffData?.name || "",
+        shiftName: shiftData?.name || "",
+        date: dayjs(eventData.shiftStart).format("DD.MM.YYYY"),
+        startTime: dayjs(eventData.shiftStart).format("HH:mm"),
+        endTime: dayjs(eventData.shiftEnd).format("HH:mm"),
+        isUpdated: eventData.isUpdated,
+      });
+
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
   };
 
   return (
@@ -227,12 +276,13 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           eventOverlap={true}
           eventDurationEditable={false}
           initialView="dayGridMonth"
-          initialDate={initialDate}
+          initialDate={initialDate || new Date()}
           events={events}
           firstDay={1}
           dayMaxEventRows={4}
           fixedWeekCount={true}
           showNonCurrentDates={true}
+          eventClick={handleEventClick}
           eventContent={(eventInfo: any) => (
             <RenderEventContent eventInfo={eventInfo} />
           )}
@@ -288,6 +338,46 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           }}
         />
       </div>
+      {isModalOpen && selectedEvent && (
+        <div className="event-modal-overlay" onClick={closeModal}>
+          <div
+            className="event-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="event-modal-header">
+              <h3>Etkinlik Detayları</h3>
+              <button className="close-button" onClick={closeModal}>
+                ×
+              </button>
+            </div>
+            <div className="event-modal-body">
+              <div className="event-detail">
+                <span className="detail-label">Personel:</span>
+                <span className="detail-value">{selectedEvent.staffName}</span>
+              </div>
+              <div className="event-detail">
+                <span className="detail-label">Vardiya:</span>
+                <span className="detail-value">{selectedEvent.shiftName}</span>
+              </div>
+              <div className="event-detail">
+                <span className="detail-label">Tarih:</span>
+                <span className="detail-value">{selectedEvent.date}</span>
+              </div>
+              <div className="event-detail">
+                <span className="detail-label">Başlangıç Saati:</span>
+                <span className="detail-value">{selectedEvent.startTime}</span>
+              </div>
+              <div className="event-detail">
+                <span className="detail-label">Bitiş Saati:</span>
+                <span className="detail-value">{selectedEvent.endTime}</span>
+              </div>
+              {selectedEvent.isUpdated && (
+                <div className="event-updated-badge">Güncellendi</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
