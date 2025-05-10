@@ -57,3 +57,21 @@ Takvimin, schedule verisindeki ilk etkinliğin tarihine göre başlamasını sa�
 - Takvim, schedule verisindeki ilk etkinliğin tarihine göre başlar.
 - Kullanıcılar, takvimdeki etkinliklere tıkladıklarında etkinlik detaylarını pop-up içinde görebilirler.
 - Takvim ve etkinlikler dinamik olarak güncellenir, böylece kullanıcı deneyimi geliştirilmiş olur.
+
+
+
+## 👥 Personel Bazlı Etkinlik Filtreleme Geliştirmesi
+
+### 🎯 Amaç
+
+Takvimde yalnızca seçilen personelin etkinliklerini göstermek, böylece tüm personellerin görevlerinin yerine sadece seçilen personelin görevlerinin takvimde görünmesini sağlamak.
+
+### ✅ Yapılan Geliştirmeler
+
+- **`generateStaffBasedCalendar` fonksiyonunun güncellenmesi**  
+  `generateStaffBasedCalendar` fonksiyonu, artık yalnızca seçilen personelin görevlerini (personel bazlı) filtreleyerek takvime ekliyor. Bu sayede yalnızca ilgili personelin etkinlikleri takvimde gösteriliyor.
+
+### 🧩 Sonuç
+
+- Takvimde sadece seçilen personelin etkinlikleri görüntülenir.
+- Önceden tüm personellerin etkinliklerinin görünmesi durumu ortadan kalkarak daha iyi bir kullanıcı deneyimi sağlanmıştır.
