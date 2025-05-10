@@ -19,6 +19,7 @@ import "../profileCalendar.scss";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import { staffColors } from "../../constants/staffColors";
 
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
@@ -27,49 +28,6 @@ type CalendarContainerProps = {
   schedule: ScheduleInstance;
   auth: UserInstance;
 };
-
-const classes = [
-  "bg-one",
-  "bg-two",
-  "bg-three",
-  "bg-four",
-  "bg-five",
-  "bg-six",
-  "bg-seven",
-  "bg-eight",
-  "bg-nine",
-  "bg-ten",
-  "bg-eleven",
-  "bg-twelve",
-  "bg-thirteen",
-  "bg-fourteen",
-  "bg-fifteen",
-  "bg-sixteen",
-  "bg-seventeen",
-  "bg-eighteen",
-  "bg-nineteen",
-  "bg-twenty",
-  "bg-twenty-one",
-  "bg-twenty-two",
-  "bg-twenty-three",
-  "bg-twenty-four",
-  "bg-twenty-five",
-  "bg-twenty-six",
-  "bg-twenty-seven",
-  "bg-twenty-eight",
-  "bg-twenty-nine",
-  "bg-thirty",
-  "bg-thirty-one",
-  "bg-thirty-two",
-  "bg-thirty-three",
-  "bg-thirty-four",
-  "bg-thirty-five",
-  "bg-thirty-six",
-  "bg-thirty-seven",
-  "bg-thirty-eight",
-  "bg-thirty-nine",
-  "bg-forty",
-];
 
 const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const calendarRef = useRef<FullCalendar>(null);
@@ -136,14 +94,18 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     );
 
     for (let i = 0; i < (staffAssignments?.length || 0); i++) {
-      const className = schedule?.shifts?.findIndex(
-        (shift) => shift.id === staffAssignments?.[i]?.shiftId
-      );
+      // const className = schedule?.shifts?.findIndex(
+      //   (shift) => shift.id === staffAssignments?.[i]?.shiftId
+      // );
 
       const assignmentDate = dayjs
         .utc(staffAssignments?.[i]?.shiftStart)
         .format("YYYY-MM-DD");
       const isValidDate = validDates().includes(assignmentDate);
+
+      const staffIndex = schedule?.staffs?.findIndex(
+        (staff) => staff.id === selectedStaffId
+      );
 
       const work = {
         id: staffAssignments?.[i]?.id,
@@ -152,7 +114,12 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
         date: assignmentDate,
         staffId: staffAssignments?.[i]?.staffId,
         shiftId: staffAssignments?.[i]?.shiftId,
-        className: `event ${classes[className]} ${
+        backgroundColor:
+          staffColors[staffIndex !== -1 ? staffIndex % staffColors.length : 0],
+        borderColor:
+          staffColors[staffIndex !== -1 ? staffIndex % staffColors.length : 0],
+        textColor: "#ffffff",
+        className: `${
           getAssigmentById(staffAssignments?.[i]?.id)?.isUpdated
             ? "highlight"
             : ""
@@ -245,27 +212,142 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     setSelectedEvent(null);
   };
 
+  const checkPairsForStaff = (
+    currentStaff: any,
+    allStaffs: any[],
+    year: number,
+    month: number,
+    day: number
+  ) => {
+    const currentDate = new Date(year, month - 1, day);
+
+    if (
+      currentStaff?.pairList &&
+      Array.isArray(currentStaff.pairList) &&
+      currentStaff.pairList.length > 0
+    ) {
+      for (const pair of currentStaff.pairList) {
+        if (!pair.startDate || !pair.endDate || !pair.staffId) continue;
+
+        const startParts = pair.startDate.split(".");
+        const endParts = pair.endDate.split(".");
+
+        if (startParts.length !== 3 || endParts.length !== 3) continue;
+
+        const startDate = new Date(
+          parseInt(startParts[2], 10),
+          parseInt(startParts[1], 10) - 1,
+          parseInt(startParts[0], 10)
+        );
+
+        const endDate = new Date(
+          parseInt(endParts[2], 10),
+          parseInt(endParts[1], 10) - 1,
+          parseInt(endParts[0], 10)
+        );
+
+        const isInDateRange =
+          currentDate >= startDate && currentDate <= endDate;
+
+        if (isInDateRange) {
+          const pairIndex = allStaffs.findIndex(
+            (staff) => staff.id === pair.staffId
+          );
+          if (pairIndex !== -1) {
+            return {
+              isPaired: true,
+              color: staffColors[pairIndex % staffColors.length],
+            };
+          }
+        }
+      }
+    }
+
+    for (const staff of allStaffs) {
+      if (
+        staff.id !== currentStaff.id &&
+        staff.pairList &&
+        Array.isArray(staff.pairList)
+      ) {
+        for (const pair of staff.pairList) {
+          if (pair.staffId === currentStaff.id) {
+            if (!pair.startDate || !pair.endDate) continue;
+
+            const startParts = pair.startDate.split(".");
+            const endParts = pair.endDate.split(".");
+
+            if (startParts.length !== 3 || endParts.length !== 3) continue;
+
+            const startDate = new Date(
+              parseInt(startParts[2], 10),
+              parseInt(startParts[1], 10) - 1,
+              parseInt(startParts[0], 10)
+            );
+
+            const endDate = new Date(
+              parseInt(endParts[2], 10),
+              parseInt(endParts[1], 10) - 1,
+              parseInt(endParts[0], 10)
+            );
+
+            const isInDateRange =
+              currentDate >= startDate && currentDate <= endDate;
+
+            if (isInDateRange) {
+              const pairIndex = allStaffs.findIndex((s) => s.id === staff.id);
+              if (pairIndex !== -1) {
+                return {
+                  isPaired: true,
+                  color: staffColors[pairIndex % staffColors.length],
+                };
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return { isPaired: false, color: "" };
+  };
+
   return (
     <div className="calendar-section">
       <div className="calendar-wrapper">
         <div className="staff-list">
-          {schedule?.staffs?.map((staff: any) => (
+          {schedule?.staffs?.map((staff: any, index: number) => (
             <div
               key={staff.id}
               onClick={() => setSelectedStaffId(staff.id)}
-              className={`staff ${
-                staff.id === selectedStaffId ? "active" : ""
-              }`}
+              className={`staff ${staff.id === selectedStaffId ? "active" : ""}`}
+              style={{
+                borderColor: staff.id === selectedStaffId ? staffColors[index % staffColors.length] : undefined,
+                backgroundColor: staff.id === selectedStaffId ? `${staffColors[index % staffColors.length]}10` : undefined
+              }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="20px"
-                viewBox="0 -960 960 960"
-                width="20px"
+              <div
+                className="staff-avatar"
+                style={{
+                  backgroundColor: staffColors[index % staffColors.length]
+                }}
               >
-                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17-62.5t47-43.5q60-30 124.5-46T480-440q67 0 131.5 16T736-378q30 15 47 43.5t17 62.5v112H160Zm320-400q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm160 228v92h80v-32q0-11-5-20t-15-14q-14-8-29.5-14.5T640-332Zm-240-21v53h160v-53q-20-4-40-5.5t-40-1.5q-20 0-40 1.5t-40 5.5ZM240-240h80v-92q-15 5-30.5 11.5T260-306q-10 5-15 14t-5 20v32Zm400 0H320h320ZM480-640Z" />
-              </svg>
-              <span>{staff.name}</span>
+                {staff.name.charAt(0).toUpperCase()}
+              </div>
+              <span
+                className="staff-name"
+                style={{
+                  color: staff.id === selectedStaffId ? staffColors[index % staffColors.length] : undefined
+                }}
+              >
+                {staff.name}
+              </span>
+              {staff.id === selectedStaffId && (
+                <div
+                  className="active-indicator"
+                  style={{
+                    backgroundColor: staffColors[index % staffColors.length]
+                  }}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -323,20 +405,68 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
             else nextButton.disabled = false;
           }}
           dayCellContent={({ date }) => {
-            const found = validDates().includes(
-              dayjs(date).format("YYYY-MM-DD")
+            const currentDate = dayjs(date);
+            const currentDay = date.getDate();
+            const currentMonth = date.getMonth() + 1;
+            const currentYear = date.getFullYear();
+
+            const found = validDates().includes(currentDate.format("YYYY-MM-DD"));
+            const isHighlighted = highlightedDates.includes(currentDate.format("DD-MM-YYYY"));
+
+            const currentStaff = schedule?.staffs?.find(
+              (staff) => staff.id === selectedStaffId
             );
-            const isHighlighted = highlightedDates.includes(
-              dayjs(date).format("DD-MM-YYYY")
-            );
+            let pairInfo = null;
+
+            if (currentStaff && schedule?.staffs) {
+              const pairResult = checkPairsForStaff(
+                currentStaff,
+                schedule.staffs,
+                currentYear,
+                currentMonth,
+                currentDay
+              );
+
+              if (pairResult.isPaired) {
+                const pairedStaffIndex = schedule.staffs.findIndex(
+                  (staff) =>
+                    staffColors[
+                      schedule.staffs.findIndex((s) => s.id === staff.id) %
+                        staffColors.length
+                    ] === pairResult.color
+                );
+
+                if (pairedStaffIndex !== -1) {
+                  const pairedStaff = schedule.staffs[pairedStaffIndex];
+                  pairInfo = {
+                    color: pairResult.color,
+                    initial: pairedStaff?.name?.charAt(0)?.toUpperCase() || "",
+                  };
+                }
+              }
+            }
 
             return (
               <div
-                className={`${found ? "" : "date-range-disabled"} ${
+                className={`calendar-day-cell ${found ? "" : "date-range-disabled"} ${
                   isHighlighted ? "highlighted-date-orange" : ""
-                } highlightedPair`}
+                } ${pairInfo ? "has-pair" : ""}`}
               >
-                {dayjs(date).date()}
+                <div>{currentDay}</div>
+                {pairInfo && (
+                  <div className="pair-indicator">
+                    <div
+                      className="pair-line"
+                      style={{ backgroundColor: pairInfo.color }}
+                    />
+                    <div
+                      className="pair-initial"
+                      style={{ backgroundColor: pairInfo.color }}
+                    >
+                      {pairInfo.initial}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           }}
