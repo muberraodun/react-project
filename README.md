@@ -26,3 +26,34 @@ Bu geliştirmeler sayesinde:
 - Profil verisi eksik olsa bile `ProfileCard` bileşeni sorunsuz çalışır.
 - Kullanıcının rol bilgisi doğru şekilde gösterilir.
 - Uygulama hata vermez, güvenli ve kararlı bir yapı sağlanmış olur.
+
+
+
+## 📅 Takvim Başlangıç Tarihi ve Event Detayı Geliştirmesi
+
+### 🎯 Amaç
+
+Takvimin, schedule verisindeki ilk etkinliğin tarihine göre başlamasını sağlamak ve takvimdeki etkinliklere tıklanıldığında, ilgili etkinlik bilgilerini gösteren bir pop-up eklemek.
+
+### ✅ Yapılan Geliştirmeler
+
+- **`initialDate` durumunun değiştirilmesi**  
+  `initialDate` durumu başlangıçta `null` olarak ayarlandı. Böylece takvim, başlangıçta bir tarih göstermez ve schedule verisi yüklendikten sonra doğru tarihe göre başlar.
+
+- **`selectedEvent` ve `isModalOpen` durumlarının eklenmesi**  
+  - `selectedEvent`: Seçilen etkinliğin detaylarını tutar (personel adı, vardiya adı, tarih, başlangıç ve bitiş saatleri gibi).
+  - `isModalOpen`: Etkinlik tıklandığında bir pop-up açılıp kapanmasını kontrol eder.
+
+- **`handleEventClick` fonksiyonu ve pop-up işlevi**  
+  - Takvimdeki bir etkinlik tıklandığında `handleEventClick` fonksiyonu etkinlik verilerini alır ve `selectedEvent` state'ine kaydeder.
+  - Pop-up'ı açmak için `setIsModalOpen(true)` çağrısı yapılır. Pop-up kapatıldığında `closeModal` fonksiyonu devreye girer.
+
+- **`useEffect` ile takvimin dinamik güncellenmesi**  
+  - `useEffect`, schedule verisi güncellendiğinde ilk olarak varsayılan personeli seçer ve bu personele ait etkinlikleri takvime işler.
+  - Takvim, personel değiştirildiğinde o personele ait etkinliklerin bulunduğu aydan başlar.
+
+### 🧩 Sonuç
+
+- Takvim, schedule verisindeki ilk etkinliğin tarihine göre başlar.
+- Kullanıcılar, takvimdeki etkinliklere tıkladıklarında etkinlik detaylarını pop-up içinde görebilirler.
+- Takvim ve etkinlikler dinamik olarak güncellenir, böylece kullanıcı deneyimi geliştirilmiş olur.
