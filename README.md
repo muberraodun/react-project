@@ -104,3 +104,50 @@ Takvimde yalnızca **seçilen personelin** pair günlerinin (başka bir personel
   - Takvimde artık yalnızca **seçilen personelin pair günleri** altı çizili olarak görüntülenmektedir.
   - Her pair, **ilgili personelin rengiyle** gösterilmektedir.
   - Önceki durumda tüm günlerin altı çizili olması sorunu giderilerek, **daha temiz ve anlaşılır bir takvim görünümü** sağlanmıştır.
+
+
+  # 🗓️ Takvimde Sürükle-Bırak Özelliği Geliştirmesi
+
+## 🎯 Amaç  
+Takvim üzerindeki etkinliklerin **sürükle-bırak** işlevi ile günlerinin değiştirilebilmesi ve bu değişikliklerin **Redux state** yapısına doğru şekilde yansıtılmasını sağlamak.
+
+---
+
+## ✅ Yapılan Geliştirmeler
+
+- **Redux Actions, Redux Reducer Yapısı**
+  - `schedule/actions.ts` dosyasında `updateAssignment` action'ı tanımlandı.  
+  - Bu action, etkinliğin **yeni tarih bilgisini** alarak state güncellemesini başlatır.
+  - `schedule/index.ts` reducer'ına `UPDATE_ASSIGNMENT` case'i eklendi.  
+
+
+
+- **Calendar Component Entegrasyonu**
+  - `CalendarContainer` içinde `handleEventDrop` fonksiyonu oluşturuldu.  
+  - Bu fonksiyon, sürükleme sonrası **yeni tarih bilgisi** ile birlikte `dispatch` işlemini gerçekleştirir.  
+  - Etkinlik ID'si ve yeni tarihi, action'a parametre olarak iletilir.
+
+- **Görsel Geri Bildirim**
+    - Güncellenen etkinlikler için CSS sınıfı tanımlandı.  
+  - `highlight` sınıfı ile etkinliğin köşelerinde görsel işaretler gösterildi.  
+  - Etkinlik detay modalında, `isUpdated` durumuna göre "**Güncellendi**" bilgisi eklendi.
+
+---
+
+## 🧩 Sonuç
+Bu geliştirmeler sayesinde:
+
+- Kullanıcılar etkinlikleri takvimde sürükleyerek kolayca tarihlerini değiştirebilir.  
+- Yapılan değişiklikler anında **Redux state**'e yansır ve uygulamanın tümünde geçerli olur.  
+- **Görsel geri bildirimler** sayesinde güncellenmiş etkinlikler kolayca ayırt edilebilir.  
+- State yönetimi ile değişiklikler **sayfa geçişlerinde bile korunur**.
+
+
+## 📝 Not: Redux Kullanımı Hakkında
+Bu proje kapsamında, Context API gibi daha hafif state yönetim çözümleri teknik olarak yeterli olabilirdi. Ancak **uygulamanın ileride genişleme ihtimali** ve **state yönetiminin ölçeklenebilirliği** göz önünde bulundurularak Redux tercih edildi.  
+
+Bu sayede:
+
+- Daha karmaşık veri akışları daha net ve yönetilebilir hale getirildi,  
+- Geliştirme ve hata ayıklama süreçleri kolaylaştırıldı (Redux DevTools vb.),  
+- Potansiyel ekip çalışmalarında tutarlı ve merkezi bir yapı sağlanmış oldu.
