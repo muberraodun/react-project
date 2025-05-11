@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import type { Action } from "redux-actions";
 
-import { put, debounce } from "redux-saga/effects";
+import { put, takeLatest } from "redux-saga/effects";
 
 import types from "../auth/types";
 import Logger from "../../utils/logger";
@@ -11,7 +11,7 @@ import AuthSession from "../../utils/session";
 import { updateProgress } from "../ui/actions";
 import type { Callbacks } from "../../utils/types";
 
-const QUERY_DEBOUNCE = 1000;
+// const QUERY_DEBOUNCE = 1000;
 
 function* asyncLogin({
   payload: { onSuccess, onError } = {},
@@ -41,7 +41,7 @@ function* asyncLogin({
 }
 
 const authSagas = [
-  debounce(QUERY_DEBOUNCE, types.SIGNIN, asyncLogin),
+  takeLatest(types.SIGNIN, asyncLogin),
 ];
 
 export default authSagas;

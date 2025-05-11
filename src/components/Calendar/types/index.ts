@@ -34,6 +34,7 @@ export interface PairInfo {
   isPaired: boolean;
   color: string;
   initial?: string;
+  fullName?: string;
 }
 
 export interface CalendarViewProps {

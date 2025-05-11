@@ -15,34 +15,34 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="event-modal-header">
-          <h3>Etkinlik Detayları</h3>
+          <h3>Event Detail</h3>
           <button className="close-button" onClick={onClose}>
             ×
           </button>
         </div>
         <div className="event-modal-body">
           <div className="event-detail">
-            <span className="detail-label">Personel:</span>
+            <span className="detail-label"> Staff Name</span>
             <span className="detail-value">{event.staffName}</span>
           </div>
           <div className="event-detail">
-            <span className="detail-label">Vardiya:</span>
+            <span className="detail-label">Shift Name</span>
             <span className="detail-value">{event.shiftName}</span>
           </div>
           <div className="event-detail">
-            <span className="detail-label">Tarih:</span>
+            <span className="detail-label">Date</span>
             <span className="detail-value">{event.date}</span>
           </div>
           <div className="event-detail">
-            <span className="detail-label">Başlangıç Saati:</span>
+            <span className="detail-label">Start Time</span>
             <span className="detail-value">{event.startTime}</span>
           </div>
           <div className="event-detail">
-            <span className="detail-label">Bitiş Saati:</span>
+            <span className="detail-label">End Time</span>
             <span className="detail-value">{event.endTime}</span>
           </div>
           {event.isUpdated && (
-            <div className="event-updated-badge">Güncellendi</div>
+            <div className="event-updated-badge">Updated</div>
           )}
         </div>
       </div>

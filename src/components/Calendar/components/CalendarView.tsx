@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import dayjs from "dayjs";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -7,11 +7,13 @@ import type { CalendarViewProps } from "../types";
 import { checkPairsForStaff } from "../utils/calendarUtils";
 
 const RenderEventContent = ({ eventInfo }: any) => {
+  const isUpdated = eventInfo.event.classNames.includes("highlight");
+  
   return (
     <div className="event-content">
       <p>{eventInfo.event.title}</p>
-      {eventInfo.event.extendedProps.isUpdated && (
-        <span>Güncellendi</span>
+      {isUpdated && (
+        <span>Updated</span>
       )}
     </div>
   );
@@ -37,6 +39,22 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return plugins;
   };
 
+  useEffect(() => {
+    if (events && events.length > 0 && calendarRef.current) {
+      const sortedEvents = [...events].sort((a, b) => {
+        const dateA = a.date ? new Date(a.date.toString()) : new Date();
+        const dateB = b.date ? new Date(b.date.toString()) : new Date();
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      if (sortedEvents[0]?.date) {
+        const firstEventDate = new Date(sortedEvents[0].date.toString());
+        const calendarApi = calendarRef.current.getApi();
+        calendarApi.gotoDate(firstEventDate);
+      }
+    }
+  }, [selectedStaffId, events, calendarRef]);
+
   return (
     <FullCalendar
       ref={calendarRef}
@@ -60,43 +78,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       eventContent={(eventInfo: any) => (
         <RenderEventContent eventInfo={eventInfo} />
       )}
-      datesSet={(info: any) => {
-        Promise.resolve().then(() => {
-          const prevButton = document.querySelector(
-            ".fc-prev-button"
-          ) as HTMLButtonElement;
-          const nextButton = document.querySelector(
-            ".fc-next-button"
-          ) as HTMLButtonElement;
-
-          if (
-            calendarRef?.current?.getApi().getDate() &&
-            !dayjs(schedule?.scheduleStartDate).isSame(
-              calendarRef?.current?.getApi().getDate()
-            )
-          ) {
-            if (calendarRef?.current?.getApi().getDate()) {
-            }
-          }
-
-          if (!prevButton || !nextButton || !schedule) return;
+      headerToolbar={{
+        left: 'title',
+        center: '',
+        right: 'prev,next today'
+      }}
+      buttonText={{
+        today: 'Today'
+      }}
+      datesSet={() => {
+        setTimeout(() => {
+          if (!schedule) return;
           
-          const startDiff = dayjs(info.start)
-            .utc()
-            .diff(
-              dayjs(schedule.scheduleStartDate).subtract(1, "day").utc(),
-              "days"
-            );
-          const endDiff = dayjs(dayjs(schedule.scheduleEndDate)).diff(
-            info.end,
-            "days"
-          );
-          if (startDiff < 0 && startDiff > -35) prevButton.disabled = true;
-          else prevButton.disabled = false;
+          const calendarApi = calendarRef?.current?.getApi();
+          if (!calendarApi) return;
 
-          if (endDiff < 0 && endDiff > -32) nextButton.disabled = true;
-          else nextButton.disabled = false;
-        });
+          const buttons = document.querySelectorAll('.fc-button');
+          buttons.forEach((button) => {
+            (button as HTMLButtonElement).disabled = false;
+          });
+        }, 0);
       }}
       dayCellContent={({ date }) => {
         const currentDate = dayjs(date);
@@ -136,6 +137,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               pairInfo = {
                 color: pairResult.color,
                 initial: pairedStaff?.name?.charAt(0)?.toUpperCase() || "",
+                fullName: pairedStaff?.name || ""
               };
             }
           }
@@ -159,6 +161,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                   style={{ backgroundColor: pairInfo.color }}
                 >
                   {pairInfo.initial}
+                  <div className="pair-name-tooltip">
+                    {pairInfo.fullName}
+                  </div>
                 </div>
               </div>
             )}
