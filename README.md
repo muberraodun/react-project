@@ -27,7 +27,7 @@ Bu geliştirmeler sayesinde:
 - Kullanıcının rol bilgisi doğru şekilde gösterilir.
 - Uygulama hata vermez, güvenli ve kararlı bir yapı sağlanmış olur.
 
-
+---
 
 ## 📅 Takvim Başlangıç Tarihi ve Event Detayı Geliştirmesi
 
@@ -58,7 +58,7 @@ Takvimin, schedule verisindeki ilk etkinliğin tarihine göre başlamasını sa�
 - Kullanıcılar, takvimdeki etkinliklere tıkladıklarında etkinlik detaylarını pop-up içinde görebilirler.
 - Takvim ve etkinlikler dinamik olarak güncellenir, böylece kullanıcı deneyimi geliştirilmiş olur.
 
-
+---
 
 ## 👥 Personel Bazlı Etkinlik Filtreleme Geliştirmesi
 
@@ -76,7 +76,7 @@ Takvimde yalnızca seçilen personelin etkinliklerini göstermek, böylece tüm 
 - Takvimde sadece seçilen personelin etkinlikleri görüntülenir.
 - Önceden tüm personellerin etkinliklerinin görünmesi durumu ortadan kalkarak daha iyi bir kullanıcı deneyimi sağlanmıştır.
 
-
+---
 
 ## 🎨 Takvimde Seçilen Personelin Pair Günlerinin Renkli, Belirgin Gösterimi
 
@@ -105,22 +105,19 @@ Takvimde yalnızca **seçilen personelin** pair günlerinin (başka bir personel
   - Her pair, **ilgili personelin rengiyle** gösterilmektedir.
   - Önceki durumda tüm günlerin altı çizili olması sorunu giderilerek, **daha temiz ve anlaşılır bir takvim görünümü** sağlanmıştır.
 
-
-  # 🗓️ Takvimde Sürükle-Bırak Özelliği Geliştirmesi
-
-## 🎯 Amaç  
-Takvim üzerindeki etkinliklerin **sürükle-bırak** işlevi ile günlerinin değiştirilebilmesi ve bu değişikliklerin **Redux state** yapısına doğru şekilde yansıtılmasını sağlamak.
-
 ---
 
-## ✅ Yapılan Geliştirmeler
+## 🗓️ Takvimde Sürükle-Bırak Özelliği Geliştirmesi
+
+### 🎯 Amaç  
+Takvim üzerindeki etkinliklerin **sürükle-bırak** işlevi ile günlerinin değiştirilebilmesi ve bu değişikliklerin **Redux state** yapısına doğru şekilde yansıtılmasını sağlamak.
+
+### ✅ Yapılan Geliştirmeler
 
 - **Redux Actions, Redux Reducer Yapısı**
   - `schedule/actions.ts` dosyasında `updateAssignment` action'ı tanımlandı.  
   - Bu action, etkinliğin **yeni tarih bilgisini** alarak state güncellemesini başlatır.
   - `schedule/index.ts` reducer'ına `UPDATE_ASSIGNMENT` case'i eklendi.  
-
-
 
 - **Calendar Component Entegrasyonu**
   - `CalendarContainer` içinde `handleEventDrop` fonksiyonu oluşturuldu.  
@@ -132,8 +129,6 @@ Takvim üzerindeki etkinliklerin **sürükle-bırak** işlevi ile günlerinin de
   - `highlight` sınıfı ile etkinliğin köşelerinde görsel işaretler gösterildi.  
   - Etkinlik detay modalında, `isUpdated` durumuna göre "**Güncellendi**" bilgisi eklendi.
 
----
-
 ## 🧩 Sonuç
 Bu geliştirmeler sayesinde:
 
@@ -142,6 +137,7 @@ Bu geliştirmeler sayesinde:
 - **Görsel geri bildirimler** sayesinde güncellenmiş etkinlikler kolayca ayırt edilebilir.  
 - State yönetimi ile değişiklikler **sayfa geçişlerinde bile korunur**.
 
+---
 
 ## 📝 Not: Redux Kullanımı Hakkında
 Bu proje kapsamında, Context API gibi daha hafif state yönetim çözümleri teknik olarak yeterli olabilirdi. Ancak **uygulamanın ileride genişleme ihtimali** ve **state yönetiminin ölçeklenebilirliği** göz önünde bulundurularak Redux tercih edildi.  
