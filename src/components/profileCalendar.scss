@@ -61,7 +61,6 @@
     font-weight: 500;
   }
 
-  // Dinamik stiller için mixin
   @mixin staff-color($color) {
     border-color: $color;
     background-color: rgba($color, 0.1);

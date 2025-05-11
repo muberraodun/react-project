@@ -20,6 +20,9 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import { staffColors } from "../../constants/staffColors";
+import type { AnyAction } from "redux";
+import { useAppDispatch } from "../../store/hooks";
+import { updateAssignment } from "../../store/schedule/actions";
 
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
@@ -38,6 +41,30 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const [initialDate, setInitialDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
+  const handleEventDrop = (eventDropInfo: any) => {
+    eventDropInfo.jsEvent?.preventDefault();
+
+    const eventId = eventDropInfo.event.id;
+
+    const newDate = dayjs(eventDropInfo.event.start).format("YYYY-MM-DD");
+
+    const assignment = schedule?.assignments?.find(
+      (assign) => assign.id === eventId
+    );
+
+    if (assignment) {
+      const originalTime = dayjs(assignment.shiftStart).format("HH:mm:ss");
+      const newShiftStart = `${newDate}T${originalTime}`;
+
+      dispatch(
+        updateAssignment({
+          id: eventId,
+          shiftStart: newShiftStart,
+        }) as AnyAction
+      );
+    }
+  };
 
   const getPlugins = () => {
     const plugins = [dayGridPlugin];
@@ -87,6 +114,8 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   };
 
   const generateStaffBasedCalendar = () => {
+    if (!schedule || !selectedStaffId) return;
+
     const works: EventInput[] = [];
 
     const staffAssignments = schedule?.assignments?.filter(
@@ -94,10 +123,6 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     );
 
     for (let i = 0; i < (staffAssignments?.length || 0); i++) {
-      // const className = schedule?.shifts?.findIndex(
-      //   (shift) => shift.id === staffAssignments?.[i]?.shiftId
-      // );
-
       const assignmentDate = dayjs
         .utc(staffAssignments?.[i]?.shiftStart)
         .format("YYYY-MM-DD");
@@ -142,14 +167,22 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
       if (offDays?.includes(transformedDate)) highlightedDates.push(date);
     });
 
-    setHighlightedDates(highlightedDates);
-    setEvents(works);
+    Promise.resolve().then(() => {
+      setHighlightedDates(highlightedDates);
+      setEvents(works);
+
+      if (calendarRef.current) {
+        calendarRef.current.getApi().removeAllEvents();
+        calendarRef.current.getApi().addEventSource(works);
+      }
+    });
   };
 
   useEffect(() => {
     if (schedule && Object.keys(schedule).length > 0) {
-      setSelectedStaffId(schedule?.staffs?.[0]?.id);
-      generateStaffBasedCalendar();
+      if (!selectedStaffId) {
+        setSelectedStaffId(schedule?.staffs?.[0]?.id);
+      }
 
       if (schedule?.assignments && schedule.assignments.length > 0) {
         const sortedAssignments = [...schedule.assignments].sort(
@@ -172,13 +205,16 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   }, [schedule]);
 
   useEffect(() => {
-    generateStaffBasedCalendar();
+    if (selectedStaffId) {
+      generateStaffBasedCalendar();
+    }
   }, [selectedStaffId]);
 
   const RenderEventContent = ({ eventInfo }: any) => {
     return (
       <div className="event-content">
         <p>{eventInfo.event.title}</p>
+        {eventInfo.event.extendedProps.isUpdated && <span>Güncellendi</span>}
       </div>
     );
   };
@@ -317,17 +353,29 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           {schedule?.staffs?.map((staff: any, index: number) => (
             <div
               key={staff.id}
-              onClick={() => setSelectedStaffId(staff.id)}
-              className={`staff ${staff.id === selectedStaffId ? "active" : ""}`}
+              onClick={() => {
+                Promise.resolve().then(() => {
+                  setSelectedStaffId(staff.id);
+                });
+              }}
+              className={`staff ${
+                staff.id === selectedStaffId ? "active" : ""
+              }`}
               style={{
-                borderColor: staff.id === selectedStaffId ? staffColors[index % staffColors.length] : undefined,
-                backgroundColor: staff.id === selectedStaffId ? `${staffColors[index % staffColors.length]}10` : undefined
+                borderColor:
+                  staff.id === selectedStaffId
+                    ? staffColors[index % staffColors.length]
+                    : undefined,
+                backgroundColor:
+                  staff.id === selectedStaffId
+                    ? `${staffColors[index % staffColors.length]}10`
+                    : undefined,
               }}
             >
               <div
                 className="staff-avatar"
                 style={{
-                  backgroundColor: staffColors[index % staffColors.length]
+                  backgroundColor: staffColors[index % staffColors.length],
                 }}
               >
                 {staff.name.charAt(0).toUpperCase()}
@@ -335,7 +383,10 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
               <span
                 className="staff-name"
                 style={{
-                  color: staff.id === selectedStaffId ? staffColors[index % staffColors.length] : undefined
+                  color:
+                    staff.id === selectedStaffId
+                      ? staffColors[index % staffColors.length]
+                      : undefined,
                 }}
               >
                 {staff.name}
@@ -344,7 +395,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
                 <div
                   className="active-indicator"
                   style={{
-                    backgroundColor: staffColors[index % staffColors.length]
+                    backgroundColor: staffColors[index % staffColors.length],
                   }}
                 />
               )}
@@ -369,40 +420,46 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           fixedWeekCount={true}
           showNonCurrentDates={true}
           eventClick={handleEventClick}
+          eventDrop={handleEventDrop}
           eventContent={(eventInfo: any) => (
             <RenderEventContent eventInfo={eventInfo} />
           )}
           datesSet={(info: any) => {
-            const prevButton = document.querySelector(
-              ".fc-prev-button"
-            ) as HTMLButtonElement;
-            const nextButton = document.querySelector(
-              ".fc-next-button"
-            ) as HTMLButtonElement;
+            Promise.resolve().then(() => {
+              const prevButton = document.querySelector(
+                ".fc-prev-button"
+              ) as HTMLButtonElement;
+              const nextButton = document.querySelector(
+                ".fc-next-button"
+              ) as HTMLButtonElement;
 
-            if (
-              calendarRef?.current?.getApi().getDate() &&
-              !dayjs(schedule?.scheduleStartDate).isSame(
-                calendarRef?.current?.getApi().getDate()
-              )
-            )
-              setInitialDate(calendarRef?.current?.getApi().getDate());
+              if (
+                calendarRef?.current?.getApi().getDate() &&
+                !dayjs(schedule?.scheduleStartDate).isSame(
+                  calendarRef?.current?.getApi().getDate()
+                )
+              ) {
+                setInitialDate(calendarRef?.current?.getApi().getDate());
+              }
 
-            const startDiff = dayjs(info.start)
-              .utc()
-              .diff(
-                dayjs(schedule.scheduleStartDate).subtract(1, "day").utc(),
+              if (!prevButton || !nextButton || !schedule) return;
+
+              const startDiff = dayjs(info.start)
+                .utc()
+                .diff(
+                  dayjs(schedule.scheduleStartDate).subtract(1, "day").utc(),
+                  "days"
+                );
+              const endDiff = dayjs(dayjs(schedule.scheduleEndDate)).diff(
+                info.end,
                 "days"
               );
-            const endDiff = dayjs(dayjs(schedule.scheduleEndDate)).diff(
-              info.end,
-              "days"
-            );
-            if (startDiff < 0 && startDiff > -35) prevButton.disabled = true;
-            else prevButton.disabled = false;
+              if (startDiff < 0 && startDiff > -35) prevButton.disabled = true;
+              else prevButton.disabled = false;
 
-            if (endDiff < 0 && endDiff > -32) nextButton.disabled = true;
-            else nextButton.disabled = false;
+              if (endDiff < 0 && endDiff > -32) nextButton.disabled = true;
+              else nextButton.disabled = false;
+            });
           }}
           dayCellContent={({ date }) => {
             const currentDate = dayjs(date);
@@ -410,8 +467,12 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
             const currentMonth = date.getMonth() + 1;
             const currentYear = date.getFullYear();
 
-            const found = validDates().includes(currentDate.format("YYYY-MM-DD"));
-            const isHighlighted = highlightedDates.includes(currentDate.format("DD-MM-YYYY"));
+            const found = validDates().includes(
+              currentDate.format("YYYY-MM-DD")
+            );
+            const isHighlighted = highlightedDates.includes(
+              currentDate.format("DD-MM-YYYY")
+            );
 
             const currentStaff = schedule?.staffs?.find(
               (staff) => staff.id === selectedStaffId
@@ -448,9 +509,11 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
 
             return (
               <div
-                className={`calendar-day-cell ${found ? "" : "date-range-disabled"} ${
-                  isHighlighted ? "highlighted-date-orange" : ""
-                } ${pairInfo ? "has-pair" : ""}`}
+                className={`calendar-day-cell ${
+                  found ? "" : "date-range-disabled"
+                } ${isHighlighted ? "highlighted-date-orange" : ""} ${
+                  pairInfo ? "has-pair" : ""
+                }`}
               >
                 <div>{currentDay}</div>
                 {pairInfo && (
