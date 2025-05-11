@@ -8,7 +8,7 @@ import type { EventInput } from "@fullcalendar/core/index.js";
 import type { EventDetails } from "./types";
 import type { CalendarContainerProps } from "./types";
 
-import "../profileCalendar.scss";
+import "../../styles/profileCalendar.scss";
 import dayjs from "dayjs";
 import FullCalendar from "@fullcalendar/react";
 

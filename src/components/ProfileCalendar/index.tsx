@@ -12,7 +12,7 @@ import { useDispatch } from "react-redux";
 import { fetchSchedule } from "../../store/schedule/actions";
 import { setProfile } from "../../store/auth/actions";
 
-import "../profileCalendar.scss";
+import "../../styles/profileCalendar.scss";
 
 const ProfileCalendar = () => {
   const dispatch = useDispatch();
