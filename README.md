@@ -75,3 +75,32 @@ Takvimde yalnızca seçilen personelin etkinliklerini göstermek, böylece tüm 
 
 - Takvimde sadece seçilen personelin etkinlikleri görüntülenir.
 - Önceden tüm personellerin etkinliklerinin görünmesi durumu ortadan kalkarak daha iyi bir kullanıcı deneyimi sağlanmıştır.
+
+
+
+# 🎨 Takvimde Seçilen Personelin Pair Günlerinin Renkli, Belirgin Gösterimi
+
+## 🎯 Amaç
+Takvimde yalnızca **seçilen personelin** pair günlerinin (başka bir personelle birlikte çalıştığı günlerin), **ilgili personelin rengiyle altı çizili olarak** gösterilmesini sağlamak.
+
+## ✅ Yapılan Geliştirmeler
+
+- **`checkPairsForStaff` fonksiyonunun eklenmesi ve geliştirilmesi**
+  - Seçilen personelin pair listesindeki tarih aralıklarını kontrol eder.
+  - Belirli bir günün **pair günü** olup olmadığını tespit eder.
+  - Eğer gün bir pair günü ise, **ilgili personelin rengini** döndürür.
+
+- **`CalendarView` bileşeninde `dayCellContent` güncellenmesi**
+  - Takvim hücrelerinin içeriği güncellenirken artık her gün için **pair kontrolü** yapılmaktadır.
+  - Pair günü olan hücrelerde:
+    - İlgili personelin **rengiyle altı çizgi**,
+    - **Personelin baş harfini** içeren bir görsel gösterge eklenir.
+
+- **CSS stillerinde yapılan geliştirmeler**
+  - Yeni sınıflar eklenerek görsel göstergeler tanımlandı.
+  - Her personel için farklı renkler kullanılarak, **hangi personelle pair olunduğu** hızlıca görülebilir hale getirildi.
+
+## 🧩 Sonuç
+  - Takvimde artık yalnızca **seçilen personelin pair günleri** altı çizili olarak görüntülenmektedir.
+  - Her pair, **ilgili personelin rengiyle** gösterilmektedir.
+  - Önceki durumda tüm günlerin altı çizili olması sorunu giderilerek, **daha temiz ve anlaşılır bir takvim görünümü** sağlanmıştır.
